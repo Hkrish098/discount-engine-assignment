@@ -1,0 +1,16 @@
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+@keyframes cart-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cart-spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border: 3px solid #e6c200;
+  border-top-color: #886600;
+  border-radius: 50%;
+  animation: cart-spin 0.8s linear infinite;
+}

@@ -1,17 +1,26 @@
 # Dependencies
 node_modules/
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+.pytest_cache/
 
 # Build output
 dist/
 dist-ssr/
+frontend/dist/
 
 # Vite cache
 .vite/
+frontend/.vite/
 
-# Environment variables
+# Secrets — API keys (never commit)
 .env
 .env.local
 .env.*.local
+backend/.env
+frontend/.env
 
 # Logs
 npm-debug.log*
@@ -19,7 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Editor directories
+# Editor
 .vscode/
 .idea/
 *.suo
@@ -28,6 +37,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
