@@ -1,0 +1,23 @@
+# Pings the Render backend every 14 minutes so the free-tier web service
+# does not spin down after 15 minutes of inactivity.
+# https://render.com/docs/free
+
+name: Keep Render backend alive
+
+on:
+  schedule:
+    # Every 14 minutes (stays under Render's 15-minute idle timeout)
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        env:
+          BACKEND_URL: ${{ vars.BACKEND_URL || 'https://discount-engine-assignment.onrender.com' }}
+        run: |
+          echo "Pinging $BACKEND_URL/health"
+          curl --fail --show-error --silent --max-time 120 "$BACKEND_URL/health"
+          echo "Backend is up."
