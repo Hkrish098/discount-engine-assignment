@@ -10,21 +10,13 @@ Deployed on [Render](https://render.com) — frontend (static site) + backend (F
 
 ---
 
-## Run locally (4 steps)
+## Run locally (3 steps)
 
-### Step 1 — Clone the repository
+### Step 1 — Clone & configure
 
 ```bash
 git clone https://github.com/Hkrish098/discount-engine-assignment.git
 cd discount-engine-assignment
-```
-
----
-
-### Step 2 — Install dependencies & configure API key
-
-```bash
-cd frontend && npm install
 ```
 
 ```bash
@@ -54,23 +46,20 @@ VITE_API_URL=https://discount-engine-assignment.onrender.com
 
 ---
 
-### Step 3 — Start the backend (terminal 1)
+### Step 2 — Start backend (terminal 1)
 
 ```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload --port 8000
+cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
 ```
 
 Docs: http://localhost:8000/docs
 
 ---
 
-### Step 4 — Start the frontend (terminal 2)
+### Step 3 — Start frontend (terminal 2)
 
 ```bash
-cd frontend
-npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 Open http://localhost:5173
