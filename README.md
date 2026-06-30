@@ -1,73 +1,91 @@
 # Opptra Discount Engine
 
-Customer-facing cart pricing engine for the Opptra FDE Intern assignment.
+Customer-facing cart pricing engine — item-level discounts, cart-level offers, natural-language rules, and PDF cart upload.
 
-**Live deployment:** _add your URL here before submission_
+**Live app:** [https://opptra-frontend.onrender.com](https://opptra-frontend.onrender.com)  
+**API:** [https://discount-engine-assignment.onrender.com](https://discount-engine-assignment.onrender.com)  
+**Repo:** [https://github.com/Hkrish098/discount-engine-assignment](https://github.com/Hkrish098/discount-engine-assignment)
+
+Deployed on [Render](https://render.com) — frontend (static site) + backend (FastAPI).
 
 ---
 
 ## Run locally (3 steps)
 
-### Step 1 — Install & configure
+### Step 1 — Install dependencies & configure API key
 
 ```bash
 cd frontend && npm install
-cd ../backend && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+```
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `backend/.env` and add your Gemini API key:
+Add your Gemini key to `backend/.env`:
 
-```
+```env
 GOOGLE_API_KEY=your_key_here
 USE_LLM_PARSER=true
 USE_VLM_PARSER=true
 GEMINI_MODEL=gemini-3.5-flash
 ```
 
-> **Never commit `backend/.env`** — it is listed in `.gitignore`. Use `.env.example` as the template only.
+For local frontend → deployed API (optional), create `frontend/.env.local`:
+
+```env
+VITE_API_URL=https://discount-engine-assignment.onrender.com
+```
+
+> `backend/.env` and `frontend/.env.local` are gitignored — never commit API keys.
+
+---
 
 ### Step 2 — Start the backend (terminal 1)
 
 ```bash
-cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --port 8000
 ```
 
-API docs: http://localhost:8000/docs
+Docs: http://localhost:8000/docs
+
+---
 
 ### Step 3 — Start the frontend (terminal 2)
 
 ```bash
-cd frontend && npm run dev
+cd frontend
+npm run dev
 ```
 
 Open http://localhost:5173
 
 ---
 
-## How to use (execution flow)
+## How to use
 
-```
-1. Upload rules.csv          → rules table loads
-2. Upload cart.csv or PDF    → cart table loads (PDF shows spinner, replaces old cart)
-3. (Optional) Parse NL rule    → preview → Apply Rule → appended to rules table
-4. Click Calculate Discounts → Cart Summary with item offers + cart-level offer
-```
+1. Upload `frontend/sample-data/rules.csv` → rules table loads  
+2. Upload `frontend/sample-data/cart.csv` **or** a cart PDF → cart table loads  
+3. *(Optional)* Type a rule in plain English → **Parse Rule** → confirm → **Apply Rule**  
+4. Click **Calculate Discounts** → Cart Summary with item offers + cart offer row  
 
-**Sample files:** `frontend/sample-data/rules.csv` and `frontend/sample-data/cart.csv`
-
-| Action | Behaviour |
-|--------|-----------|
-| CSV rules / cart | Parsed client-side, instant |
-| Natural-language rule | Gemini → confirm → append to rules (click Calculate to refresh summary) |
-| PDF cart | Gemini VLM extracts items, replaces cart entirely (click Calculate for summary) |
-| Malformed PDF row | Warning banner, valid rows still load |
+| Input | What happens |
+|-------|----------------|
+| CSV | Parsed in the browser, instant |
+| Natural language | Gemini parses → you confirm → rule appended to table |
+| PDF cart | Gemini VLM extracts items, **replaces** the cart; malformed rows show a warning |
 
 ---
 
-## Expected results (sample data + RULE-04)
+## Expected results (sample CSVs + RULE-04)
 
-| Item | Final Price | Offer |
+| Item | Final price | Offer |
 |------|-------------|-------|
 | ITEM-01 | Rs.1,104 | Platform 15% off |
 | ITEM-02 | Rs.629 | Brand Rs.150 + Platform 10% stacked |
@@ -76,70 +94,94 @@ Open http://localhost:5173
 | ITEM-05 | Rs.382 | Platform 15% off |
 | ITEM-06 | Rs.809 | Platform 10% off |
 
-Cart subtotal **Rs.5,932** → RULE-04 cart offer **−Rs.593** → **Final Rs.5,339**
+Cart subtotal **Rs.5,932** → RULE-04 **−Rs.593** → **Final Rs.5,339**
 
 ---
 
-## Architecture
+## Project structure
 
 ```
-frontend/                 React UI + pure discount engine
-  src/engine/             discountEngine.js, csvParser.js
-  src/api/                calls backend translators
-
-backend/                  FastAPI + Gemini (NL rules, PDF carts)
-  app/services/           gemini_parser, gemini_pdf_parser, rule_mapper
+discount-engine-assignment/
+├── frontend/                         # React + Vite UI
+│   ├── sample-data/
+│   │   ├── rules.csv
+│   │   └── cart.csv
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── backendClient.js      # calls FastAPI translator
+│   │   ├── components/
+│   │   │   ├── CartUploader.jsx      # CSV + PDF cart upload
+│   │   │   ├── CsvUploader.jsx
+│   │   │   ├── NaturalLanguageRuleInput.jsx
+│   │   │   └── ...
+│   │   ├── engine/
+│   │   │   ├── discountEngine.js     # pure discount math (no UI / no LLM)
+│   │   │   ├── csvParser.js
+│   │   │   ├── priceMath.js
+│   │   │   └── ruleIds.js
+│   │   └── App.jsx
+│   ├── .env.example
+│   └── package.json
+│
+├── backend/                          # FastAPI translator API
+│   ├── app/
+│   │   ├── main.py                   # CORS + routes
+│   │   ├── config.py
+│   │   ├── schemas.py
+│   │   ├── models/
+│   │   │   ├── parsed_rule.py        # LLM guardrail schema
+│   │   │   └── pdf_extraction.py     # VLM guardrail schema
+│   │   ├── routers/
+│   │   │   ├── parse_rule.py         # POST /api/parse-rule
+│   │   │   └── parse_pdf.py          # POST /api/parse-pdf-cart
+│   │   └── services/
+│   │       ├── gemini_parser.py      # NL → DiscountRule
+│   │       ├── gemini_pdf_parser.py  # PDF → CartItem[]
+│   │       ├── rule_mapper.py
+│   │       └── pdf_cart_parser.py
+│   ├── tests/
+│   ├── .env.example
+│   └── requirements.txt
+│
+└── README.md
 ```
 
-**Core rule:** inputs adapt to the engine — `discountEngine.js` never sees raw text or PDF bytes.
-
-| Input | Translator | Engine receives |
-|-------|------------|-----------------|
-| CSV | `csvParser.js` | `DiscountRule[]`, `CartItem[]` |
-| Plain English | `POST /api/parse-rule` | `DiscountRule` |
-| PDF cart | `POST /api/parse-pdf-cart` | `CartItem[]` |
+**Architecture rule:** CSV, natural language, and PDF are translated into `DiscountRule` / `CartItem` objects before they reach `discountEngine.js`.
 
 ---
 
-## Features
-
-- [x] CSV upload + item-level discounts (best rule + stacking)
-- [x] Cart-level discounts (RULE-04 threshold)
-- [x] Natural-language rules (Gemini + Pydantic structured output + confirm step)
-- [x] PDF cart upload (Gemini VLM + malformed-row warnings)
-- [x] Tests (`cd frontend && npm test` · `cd backend && pytest`)
-
----
-
-## Design decisions & tradeoffs
-
-- **Direct Gemini API + Pydantic** — no LangChain; structured JSON schema prevents invalid rules reaching the engine.
-- **Backend for NL/PDF only** — all discount math stays in `discountEngine.js` on the frontend.
-- **PDF replaces cart; NL rules append** — different input semantics per assignment spec.
-- **Manual Calculate** — user clicks after loading cart or adding rules so results are intentional.
-- **Offline fallback** — set `USE_LLM_PARSER=false` / `USE_VLM_PARSER=false` for regex/text parsers (tests).
-
----
-
-## Build & deploy
+## Tests & build
 
 ```bash
-cd frontend && npm run build    # → frontend/dist/
+cd frontend && npm test
 ```
 
-Deploy `frontend/dist/` to Vercel/Netlify. Set `VITE_API_URL` to your deployed FastAPI URL.
+```bash
+cd backend && source .venv/bin/activate && pytest
+```
 
 ```bash
-cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000
+cd frontend && npm run build
 ```
 
 ---
 
-## Project layout
+## Deployment (Render)
 
-```
-frontend/          Vite + React app
-backend/           FastAPI translator API
-  .env.example     template (safe to commit)
-  .env             your API key (gitignored)
-```
+| Service | Root directory | Start command |
+|---------|----------------|---------------|
+| Frontend | `frontend` | `npm install && npm run build` (static publish `dist/`) |
+| Backend | `backend` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+
+**Frontend env:** `VITE_API_URL=https://discount-engine-assignment.onrender.com`  
+**Backend env:** `GOOGLE_API_KEY`, `USE_LLM_PARSER`, `USE_VLM_PARSER`, `GEMINI_MODEL`, `CORS_ORIGINS`
+
+---
+
+## Design decisions
+
+- **Engine stays pure** — `discountEngine.js` only receives typed objects; NL/PDF never touch the calculator.
+- **Direct Gemini + Pydantic** — structured JSON output with validation.
+- **Backend for NL & PDF only** — discount math runs client-side.
+- **PDF replaces cart; NL rules append** — per assignment semantics.
+- **Manual Calculate** — user triggers summary after loading cart or adding rules.

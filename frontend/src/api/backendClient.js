@@ -15,7 +15,10 @@ export async function parseNaturalLanguageRule(text) {
   })
 
   if (!res.ok) {
-    throw new Error(`Rule parser unavailable (${res.status}). Is the backend running?`)
+    const detail = res.status === 0 ? '' : ` (${res.status})`
+    throw new Error(
+      `Rule parser unavailable${detail}. Check backend URL and CORS settings.`
+    )
   }
 
   return res.json()
@@ -31,7 +34,10 @@ export async function parsePdfCart(file) {
   })
 
   if (!res.ok) {
-    throw new Error(`PDF parser unavailable (${res.status}). Is the backend running?`)
+    const detail = res.status === 0 ? '' : ` (${res.status})`
+    throw new Error(
+      `PDF parser unavailable${detail}. Check backend URL and CORS settings.`
+    )
   }
 
   return res.json()
