@@ -10,9 +10,18 @@ Deployed on [Render](https://render.com) — frontend (static site) + backend (F
 
 ---
 
-## Run locally (3 steps)
+## Run locally (4 steps)
 
-### Step 1 — Install dependencies & configure API key
+### Step 1 — Clone the repository
+
+```bash
+git clone https://github.com/Hkrish098/discount-engine-assignment.git
+cd discount-engine-assignment
+```
+
+---
+
+### Step 2 — Install dependencies & configure API key
 
 ```bash
 cd frontend && npm install
@@ -45,7 +54,7 @@ VITE_API_URL=https://discount-engine-assignment.onrender.com
 
 ---
 
-### Step 2 — Start the backend (terminal 1)
+### Step 3 — Start the backend (terminal 1)
 
 ```bash
 cd backend
@@ -57,7 +66,7 @@ Docs: http://localhost:8000/docs
 
 ---
 
-### Step 3 — Start the frontend (terminal 2)
+### Step 4 — Start the frontend (terminal 2)
 
 ```bash
 cd frontend
