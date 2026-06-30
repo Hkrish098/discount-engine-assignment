@@ -23,7 +23,7 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env
+cp .env.example .env
 ```
 
 Add your Gemini key to `backend/.env`:
@@ -80,6 +80,71 @@ Open http://localhost:5173
 | CSV | Parsed in the browser, instant |
 | Natural language | Gemini parses → you confirm → rule appended to table |
 | PDF cart | Gemini VLM extracts items, **replaces** the cart; malformed rows show a warning |
+
+---
+
+## Execution flows
+
+### 1 — Cart-level discount (RULE-04)
+
+Runs entirely in `discountEngine.js` after you click **Calculate Discounts**:
+
+```
+Item-level discounts  →  each row gets a final price
+        ↓
+Subtotal              →  sum of item finals (e.g. Rs.5,932)
+        ↓
+Cart rule check       →  subtotal ≥ min_cart_value? (Rs.4,000)
+        ↓
+Cart offer applied    →  10% of subtotal = Rs.593 off
+        ↓
+Final cart total      →  Rs.5,339
+```
+
+---
+
+### 2 — Natural-language rule input
+
+```mermaid
+flowchart TD
+    A[User types rule in textbox] --> B[Click Parse Rule]
+    B --> C["POST /api/parse-rule"]
+    C --> D["Gemini structured output\n(ParsedDiscountRule schema)"]
+    D --> E{Valid & unambiguous?}
+    E -->|No| F[Show error / ambiguity message]
+    E -->|Yes| G[Preview: scope, type, value, applies_to…]
+    G --> H{User action}
+    H -->|Discard| A
+    H -->|Apply Rule| I[Append DiscountRule to rules table]
+    I --> J[User clicks Calculate Discounts]
+    J --> K["discountEngine.calculateCart()"]
+    K --> L[Cart Summary updated]
+```
+
+**Key point:** the engine never sees raw text — Gemini output is validated with Pydantic, mapped to `DiscountRule`, then confirmed by the user.
+
+---
+
+### 3 — PDF cart extraction
+
+```mermaid
+flowchart TD
+    A[User selects cart PDF] --> B[Clear old cart + show spinner]
+    B --> C["POST /api/parse-pdf-cart"]
+    C --> D["Gemini VLM structured output\n(PDFExtractionResponse schema)"]
+    D --> E{Valid cart items?}
+    E -->|No| F[Show error banner]
+    E -->|Yes| G[Map rows → CartItem array]
+    G --> H{Malformed rows?}
+    H -->|Yes| I[Warning banner + load valid rows]
+    H -->|No| J[Cart table populated]
+    I --> K[User clicks Calculate Discounts]
+    J --> K
+    K --> L["discountEngine.calculateCart()"]
+    L --> M[Cart Summary shown]
+```
+
+**Key point:** PDF **replaces** the entire cart. Summary is not shown until the user clicks **Calculate Discounts**.
 
 ---
 
