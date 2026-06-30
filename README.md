@@ -239,6 +239,25 @@ cd frontend && npm run build
 **Frontend env:** `VITE_API_URL=https://discount-engine-assignment.onrender.com`  
 **Backend env:** `GOOGLE_API_KEY`, `USE_LLM_PARSER`, `USE_VLM_PARSER`, `GEMINI_MODEL`, `CORS_ORIGINS`
 
+### Render free tier — idle spin-down
+
+This project is deployed on Render’s **free tier**:
+
+| Service | Sleeps when idle? |
+|---------|-------------------|
+| **Frontend** (static site) | No — always available |
+| **Backend** (web service) | Yes — spins down after **15 minutes** with no incoming requests |
+
+When the backend has been idle, the **first** NL-rule or PDF request can take **30–60 seconds** while Render cold-starts the container.
+
+To reduce that for demos and reviewers, a **GitHub Action** pings the backend health endpoint every **14 minutes** (just under the 15-minute limit):
+
+- Workflow: [`.github/workflows/render-keep-alive.yml`](.github/workflows/render-keep-alive.yml)
+- Endpoint: `GET /health` on the deployed backend
+- Enable: push to GitHub → **Settings → Actions** → allow workflows → runs on schedule automatically
+
+You can also trigger it manually from the **Actions** tab (**Run workflow**).
+
 ---
 
 ## Design decisions
