@@ -3,7 +3,7 @@
 Customer-facing cart pricing engine — item-level discounts, cart-level offers, natural-language rules, and PDF cart upload.
 
 **Live app:** [https://opptra-frontend.onrender.com](https://opptra-frontend.onrender.com)  
-**API:** [https://discount-engine-assignment.onrender.com](https://discount-engine-assignment.onrender.com)  
+**API:** [https://discount-engine-assignment.onrender.com/docs](https://discount-engine-assignment.onrender.com)  
 **Repo:** [https://github.com/Hkrish098/discount-engine-assignment](https://github.com/Hkrish098/discount-engine-assignment)
 
 Deployed on [Render](https://render.com) — frontend (static site) + backend (FastAPI).
@@ -23,7 +23,7 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
+cp .env
 ```
 
 Add your Gemini key to `backend/.env`:
